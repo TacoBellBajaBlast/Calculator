@@ -19,6 +19,11 @@ bool isUnaryOperator(char c) {
     return c == '-';
 }
 
+// Function to check if a character is a bracket or parenthesis
+bool isBracket(char c) {
+    return c == "(" || c == ")" || c == "{" || c == "}"; 
+}
+
 // Function to get the precedence of an operator
 int getPrecedence(char op) {
     if (op == '^') return 4;
@@ -43,24 +48,26 @@ double applyOperation(double a, double b, char op) {
 
 // Function to validate the expression
 bool validateExpression(const string& expression) {
-    stack<char> parentheses;
+    stack<char> brackets;
     for (size_t i = 0; i < expression.length(); i++) {
         char c = expression[i];
-        if (c == '(') {
-            parentheses.push(c);
+        if (c == '(' || c == '{') {
+            brackets.push(c);
         }
-        else if (c == ')') {
-            if (parentheses.empty() || parentheses.top() != '(') {
-                return false; // Mismatched parenthesis
+        else if (c == ')' || c == '}') {
+            if (brackets.empty() ||
+                (c == ')' && brackets.top() != '(') ||
+                (c == '}' && brackets.top() != '{')) {
+                return false; // Mismatched bracket
             }
-            parentheses.pop();
+            brackets.pop();
         }
         // Check for invalid operator sequences
         if (isOperator(c) && i + 1 < expression.length() && isOperator(expression[i + 1])) {
             return false; // Two operators in a row
         }
     }
-    return parentheses.empty(); // Ensure all parentheses are matched
+    return brackets.empty(); // Ensure all brackets are matched
 }
 
 // Function to evaluate a mathematical expression
@@ -83,13 +90,14 @@ double evaluateExpression(const string& expression) {
             ss >> value;
             values.push(value);
         }
-        // Handle opening parenthesis
-        else if (expression[i] == '(') {
+        // Handle opening brackets
+        else if (expression[i] == '(' || expression[i] == '{') {
             operators.push(expression[i]);
         }
-        // Handle closing parenthesis
-        else if (expression[i] == ')') {
-            while (!operators.empty() && operators.top() != '(') {
+        // Handle closing brackets
+        else if (expression[i] == ')' || expression[i] == '}') {
+            char expectedBracket = (expression[i] == ')') ? '(' : '{';
+            while (!operators.empty() && operators.top() != expectedBracket) {
                 char op = operators.top();
                 operators.pop();
                 double b = values.top();
@@ -99,9 +107,9 @@ double evaluateExpression(const string& expression) {
                 values.push(applyOperation(a, b, op));
             }
             if (operators.empty()) {
-                throw invalid_argument("Mismatched parentheses");
+                throw invalid_argument("Mismatched brackets");
             }
-            operators.pop(); // Remove the '(' from the stack
+            operators.pop(); // Remove the '(' or '{' from the stack
         }
         // Handle operators
         else if (isOperator(expression[i])) {
