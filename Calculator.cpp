@@ -58,16 +58,17 @@ bool validateExpression(const string& expression) {
             if (brackets.empty() ||
                 (c == ')' && brackets.top() != '(') ||
                 (c == '}' && brackets.top() != '{')) {
+                cerr << "Error: Mismatched bracket at position " << i << endl;
                 return false; // Mismatched bracket
             }
             brackets.pop();
         }
-        // Check for invalid operator sequences
-        if (isOperator(c) && i + 1 < expression.length() && isOperator(expression[i + 1])) {
-            return false; // Two operators in a row
-        }
     }
-    return brackets.empty(); // Ensure all brackets are matched
+    if (!brackets.empty()) {
+        cerr << "Error: Mismatched bracket detected. Unclosed brackets: " << brackets.size() << endl;
+        return false; // Unclosed brackets
+    }
+    return true; // All brackets are matched
 }
 
 // Function to evaluate a mathematical expression
